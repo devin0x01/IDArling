@@ -25,6 +25,7 @@ import ida_netnode
 import ida_pro
 import ida_segment
 import ida_typeinf
+import idc
 
 fDebug = False
 if fDebug:
@@ -532,7 +533,7 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
 
     def renamed(self, ea, new_name, local_name):
         self._plugin.logger.debug("renamed(ea = %x, new_name = %s, local_name = %d)" % (ea, new_name, local_name))
-        if idc.is_member_id(ea) or idc.get_struc(ea) or idc.get_enum_name(ea):
+        if idc.is_member_id(ea) or idc.is_struc(ea) or idc.get_enum_name(ea):
             # Drop hook to avoid duplicate since already handled by the following hooks:
             # - renaming_struc_member() -> sends 'StrucMemberRenamedEvent'
             # - renaming_struc() -> sends 'StrucRenamedEvent' 
