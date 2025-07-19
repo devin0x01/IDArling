@@ -11,7 +11,7 @@ setup(
     install_requires=["PyQt5; python_version >= '3.0'"],
     include_package_data=True,
     entry_points={
-        "idapython_plugins": ["idarling=idarling.plugin:Plugin"],
+        "idapython_plugins": ["idarling=idarling.plugin:IDArlingPlugin"],
         "console_scripts": ["idarling_server=idarling.server:main"],
     },
 )
