@@ -240,6 +240,7 @@ class ClientSocket(QObject):
             try:
                 line = json.dumps(self._write_packet.build_packet())
                 line = line.encode("utf-8") + b"\n"
+                print(f"====== send packet: packet={line}, len={len(line)}")
             except Exception as e:
                 msg = "Invalid packet being sent: %s" % self._write_packet
                 self._logger.warning(msg + "\n")

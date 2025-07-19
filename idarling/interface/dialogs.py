@@ -511,6 +511,7 @@ class SaveDialog(OpenDialog):
         """Called when the project creation dialog is accepted."""
         name = dialog.get_result()
         # Ensure we don't already have a project with that name
+        print(f"====== SaveDialog._create_project_accepted() name={name}, projects={self._projects}")
         if any(project.name == name for project in self._projects):
             failure = QMessageBox()
             failure.setIcon(QMessageBox.Warning)
