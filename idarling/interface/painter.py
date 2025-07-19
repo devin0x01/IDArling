@@ -151,5 +151,5 @@ class Painter(QObject):
 
     def refresh(self):
         ida_kernwin.refresh_navband(True)
-        ida_kernwin.request_refresh(ida_kernwin.IWID_DISASMS)
+        ida_kernwin.request_refresh(ida_kernwin.IWID_DISASM)
         ida_kernwin.request_refresh(ida_kernwin.IWID_FUNCS)
