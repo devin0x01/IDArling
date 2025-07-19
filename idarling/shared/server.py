@@ -162,7 +162,7 @@ class ServerClient(ClientSocket):
             if packet.tick and interval and packet.tick % interval == 0:
 
                 def file_downloaded(reply):
-                    file_name = "%s_%s_%s.idb" % (self._project, self._binary, self._snapshot)
+                    file_name = "%s_%s_%s.i64" % (self._project, self._binary, self._snapshot)
                     file_path = self.parent().server_file(file_name)
 
                     # Write the file to disk
@@ -206,8 +206,8 @@ class ServerClient(ClientSocket):
                     # for queries
                     snapshots = self.parent().storage.select_snapshots(query.project, query.new_name)
                     for snapshot in snapshots:
-                        old_file_name = "%s_%s_%s.idb" % (query.project, query.old_name, snapshot.name)
-                        new_file_name = "%s_%s_%s.idb" % (query.project, query.new_name, snapshot.name)
+                        old_file_name = "%s_%s_%s.i64" % (query.project, query.old_name, snapshot.name)
+                        new_file_name = "%s_%s_%s.i64" % (query.project, query.new_name, snapshot.name)
                         old_file_path = self.parent().server_file(old_file_name)
                         new_file_path = self.parent().server_file(new_file_name)
                         # If a rename happens before a file is uploaded, the 
@@ -241,7 +241,7 @@ class ServerClient(ClientSocket):
         snapshots = self.parent().storage.select_snapshots(query.project, query.binary)
         for snapshot in snapshots:
             snapshot_info = snapshot.project, snapshot.binary, snapshot.name
-            file_name = "%s_%s_%s.idb" % (snapshot_info)
+            file_name = "%s_%s_%s.i64" % (snapshot_info)
             file_path = self.parent().server_file(file_name)
             if os.path.isfile(file_path):
                 snapshot.tick = self.parent().storage.last_tick(*snapshot_info)
@@ -265,7 +265,7 @@ class ServerClient(ClientSocket):
         snapshot = self.parent().storage.select_snapshot(
             query.project, query.binary, query.snapshot
         )
-        file_name = "%s_%s_%s.idb" % (query.project, snapshot.binary, snapshot.name)
+        file_name = "%s_%s_%s.i64" % (query.project, snapshot.binary, snapshot.name)
         file_path = self.parent().server_file(file_name)
 
         # Write the file received to disk
@@ -279,7 +279,7 @@ class ServerClient(ClientSocket):
         snapshot = self.parent().storage.select_snapshot(
             query.project, query.binary, query.snapshot
         )
-        file_name = "%s_%s_%s.idb" % (query.project, snapshot.binary, snapshot.name)
+        file_name = "%s_%s_%s.i64" % (query.project, snapshot.binary, snapshot.name)
         file_path = self.parent().server_file(file_name)
 
         # Read file from disk and sent it
@@ -365,7 +365,7 @@ class ServerClient(ClientSocket):
             self._delete_snapshot_files(project, binary, db.name)
 
     def _delete_snapshot_files(self, project, binary, snapshot):
-        file_name = "%s_%s_%s.idb" % (project, binary, snapshot)
+        file_name = "%s_%s_%s.i64" % (project, binary, snapshot)
         file_path = self.parent().server_file(file_name)
         try:
             os.remove(file_path)

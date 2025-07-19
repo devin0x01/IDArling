@@ -207,7 +207,8 @@ class OpenActionHandler(ActionHandler):
         # Get the absolute path of the file
         app_path = QCoreApplication.applicationFilePath()
         app_name = QFileInfo(app_path).fileName()
-        file_ext = "i64" if "64" in app_name else "idb"
+        # file_ext = "i64" if "64" in app_name else "idb"
+        file_ext = "i64"
         file_name = "%s_%s_%s.%s" % (project.name, snapshot.binary, snapshot.name, file_ext)
         file_path = os.path.join(self._plugin.config["files_dir"], file_name)
 
