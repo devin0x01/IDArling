@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/**",
+        "C:/Mysw/IDA/IDA Professional 9.0/python",
+        "C:/Mysw/IDA/IDA Professional 9.0/python/**"
+    ]
+}
