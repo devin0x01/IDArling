@@ -73,7 +73,7 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
         self._plugin.logger.debug("auto_empty() not implemented yet")
         return 0
 
-    def local_types_changed(self):
+    def local_types_changed_deprecated(self):
         changed_types = []
         # self._plugin.logger.trace(self._plugin.core.local_type_map)
         for i in range(1, ida_typeinf.get_ordinal_count(ida_typeinf.get_idati())):
@@ -165,6 +165,136 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
         #     )
         # self._send_packet(evt.LocalTypesChangedEvent(local_types))
         # return 0
+
+    def local_types_changed(self, ltc=None, ordinal=None, name=None):
+        """
+        检测本地类型的具体变化
+        """
+        super().local_types_changed(ltc, ordinal, name)
+        if ltc not in [1, 2, 3]:
+            self._plugin.logger.error("local_types_changed: ltc=%s not handled" % str(ltc))
+            return 0
+        
+        self._plugin.logger.info("local_types_changed: ltc=%d, ordinal=%s, name='%s'" % (ltc, ordinal, name or ""))
+        try:
+            changed_types = []
+            old_type = None
+            new_type = None
+
+            # 根据变化类型构建事件
+            if ltc == 1:  # CREATE
+                self._plugin.core.update_local_types_map()
+                new_type = self._plugin.core.local_type_map.get(ordinal)
+                if new_type:
+                    self._plugin.logger.info(f"Created new type: {new_type.name}")
+                    changed_types.append((None, new_type.to_tuple()))
+                else:
+                    self._plugin.logger.warning(f"Create event but new_type is None: ordinal={ordinal}, name='{name}'")
+            elif ltc == 2:  # DELETE
+                old_type = self._plugin.core.local_type_map.get(ordinal)
+                if old_type:
+                    self._plugin.logger.info(f"Deleted type: {name}")
+                    changed_types.append((old_type.to_tuple(), None))
+
+                # 先记录old_type，然后更新local_type_map
+                self._plugin.core.update_local_types_map()
+            elif ltc == 3:  # MODIFY
+                old_type = self._plugin.core.local_type_map.get(ordinal)
+                self._plugin.core.update_local_types_map()
+                new_type = self._plugin.core.local_type_map.get(ordinal)
+
+                if old_type and new_type:
+                    self._plugin.logger.debug(f"Modified type from {old_type.to_tuple()} to {new_type.to_tuple()}")
+                    changed_types.append((old_type.to_tuple(), new_type.to_tuple()))
+                else:
+                    self._plugin.logger.warning(f"Modify event but old_type or new_type is None: old_type={old_type}, new_type={new_type}")
+        
+            # 发送变化事件（过滤掉无变化的项）
+            if changed_types:
+                filtered_changes = []
+                for old_tuple, new_tuple in changed_types:
+                    if old_tuple != new_tuple:
+                        filtered_changes.append((old_tuple, new_tuple))
+                    else:
+                        self._plugin.logger.debug("Filtered out duplicate change: %s == %s" % (old_tuple, new_tuple))
+                
+                if filtered_changes:
+                    self._send_packet(evt.LocalTypesChangedEvent(filtered_changes))
+                    self._plugin.logger.debug("Sent LocalTypesChangedEvent with %d changes (filtered from %d)" % (len(filtered_changes), len(changed_types)))
+
+        except Exception as e:
+            self._plugin.logger.error("Error processing local type change: %s" % str(e))
+
+        return 0
+
+    def _log_type_details(self, type_obj, prefix=""):
+        """记录类型的详细信息"""
+        if type_obj:
+            try:
+                details = {
+                    'name': type_obj.name,
+                    'type_string_hex': type_obj.TypeString.hex() if type_obj.TypeString else '',
+                    'type_fields_hex': type_obj.TypeFields.hex() if type_obj.TypeFields else '',
+                    'is_struct': type_obj.is_struct() if hasattr(type_obj, 'is_struct') else False,
+                    'is_union': type_obj.is_union() if hasattr(type_obj, 'is_union') else False,
+                    'is_enum': type_obj.is_enum() if hasattr(type_obj, 'is_enum') else False,
+                    'is_typedef': type_obj.is_typedef() if hasattr(type_obj, 'is_typedef') else False,
+                    'print_type': type_obj.print_type() if hasattr(type_obj, 'print_type') else ''
+                }
+                self._plugin.logger.trace("%sType details: %s" % (prefix, details))
+            except Exception as e:
+                self._plugin.logger.trace("%sFailed to get type details: %s" % (prefix, e))
+    
+    def _compare_types(self, old_type, new_type, ordinal):
+        """比较新旧类型的具体差异"""
+        try:
+            self._plugin.logger.debug("Comparing types at ordinal %d:" % ordinal)
+            
+            # 比较名称
+            if old_type.name != new_type.name:
+                self._plugin.logger.info("  Name changed: '%s' -> '%s'" % (old_type.name, new_type.name))
+            
+            # 比较类型字符串
+            if old_type.TypeString != new_type.TypeString:
+                self._plugin.logger.info("  TypeString changed: %s -> %s" % (
+                    old_type.TypeString.hex() if old_type.TypeString else 'None',
+                    new_type.TypeString.hex() if new_type.TypeString else 'None'
+                ))
+                
+            # 比较字段信息
+            if old_type.TypeFields != new_type.TypeFields:
+                self._plugin.logger.info("  TypeFields changed: %s -> %s" % (
+                    old_type.TypeFields.hex() if old_type.TypeFields else 'None',
+                    new_type.TypeFields.hex() if new_type.TypeFields else 'None'
+                ))
+            
+            # 比较注释
+            if old_type.cmt != new_type.cmt:
+                self._plugin.logger.info("  Comment changed: '%s' -> '%s'" % (
+                    old_type.cmt.decode('utf-8', errors='ignore') if old_type.cmt else '',
+                    new_type.cmt.decode('utf-8', errors='ignore') if new_type.cmt else ''
+                ))
+            
+            # 比较字段注释
+            if old_type.fieldcmts != new_type.fieldcmts:
+                self._plugin.logger.info("  Field comments changed: %s -> %s" % (
+                    old_type.fieldcmts.hex() if old_type.fieldcmts else 'None',
+                    new_type.fieldcmts.hex() if new_type.fieldcmts else 'None'
+                ))
+                
+            # 比较类型的结构化表示
+            try:
+                old_print = old_type.print_type() if hasattr(old_type, 'print_type') else ''
+                new_print = new_type.print_type() if hasattr(new_type, 'print_type') else ''
+                if old_print != new_print:
+                    self._plugin.logger.info("  Printed type changed:")
+                    self._plugin.logger.info("    OLD: %s" % old_print)
+                    self._plugin.logger.info("    NEW: %s" % new_print)
+            except Exception as e:
+                self._plugin.logger.debug("  Could not compare printed types: %s" % e)
+                
+        except Exception as e:
+            self._plugin.logger.debug("Error comparing types: %s" % e)
 
     def ti_changed(self, ea, type, fname):
         self._plugin.logger.debug("ti_changed(ea = 0x%X, type = %s, fname = %s)" % (ea, type, fname))
@@ -304,6 +434,7 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
 
     # XXX - use struc_renamed(self, sptr) instead?
     def renaming_struc(self, id, oldname, newname):
+        print("????? renaming_struc() called")
         self._send_packet(evt.StrucRenamedEvent(oldname, newname))
         return 0
 
@@ -314,6 +445,7 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
         return 0
 
     def struc_member_created(self, sptr, mptr):
+        print("????? struc_member_created() called")
         extra = {}
         sname = idc.get_struc_name(sptr.id)
         fieldname = idc.get_member_name(mptr.id)
@@ -365,12 +497,14 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
 
     # XXX - use struc_member_renamed(self, sptr, mptr) instead?
     def renaming_struc_member(self, sptr, mptr, newname):
+        print("????? renaming_struc_member() called")
         sname = idc.get_struc_name(sptr.id)
         offset = mptr.soff
         self._send_packet(evt.StrucMemberRenamedEvent(sname, offset, newname))
         return 0
 
     def struc_member_changed(self, sptr, mptr):
+        print("????? struc_member_changed() called")
         extra = {}
 
         sname = idc.get_struc_name(sptr.id)
@@ -864,15 +998,22 @@ class UIHooks(Hooks, ida_kernwin.UI_Hooks):
 
     def preprocess_action(self, name):
         ea = ida_kernwin.get_screen_ea()
-        self._plugin.logger.debug("preprocess_action(name = %s). ea = 0x%X." % (name, ea))
+        self._plugin.logger.debug(f"preprocess_action(name = {name}), ea = 0x{ea:X}. local_type_map_size = {len(self._plugin.core.local_type_map)}")
+
         if name == "MakeUnknown":
             self.actions.append((name, ea))
         elif name == "MakeCode":
             self.actions.append((name, ea))
+
+        # 如果结构体只有声明没有定义，那么value就是None
+        # for key, value in self._plugin.core.local_type_map.items():
+            # self._plugin.logger.trace(f"Key {key} value {value.to_tuple() if value else ''}.")
+
         return 0
 
     def postprocess_action(self):
-        self._plugin.logger.debug("postprocess_action()")
+        self._plugin.logger.debug(f"postprocess_action(). local_type_map_size={len(self._plugin.core.local_type_map)}")
+
         if len(self.actions):
             name, ea = self.actions.pop()
             if name == "MakeUnknown":

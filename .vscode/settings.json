@@ -3,5 +3,9 @@
         "${workspaceFolder}/**",
         "C:/Mysw/IDA/IDA Professional 9.0/python",
         "C:/Mysw/IDA/IDA Professional 9.0/python/**"
-    ]
+    ],
+    "files.readonlyInclude": {
+        "C:/Mysw/IDA/IDA Professional 9.0/python/**": true
+    },
+    "files.readonlyExclude": {},
 }
