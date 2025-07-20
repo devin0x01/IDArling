@@ -195,6 +195,9 @@ class ClientSocket(QObject):
                         self._read_packet = Packet.parse_packet(
                             dct, self._server
                         )
+
+                        # event虚函数最终执行挂起的事件
+                        self._logger.debug(f"========== recv packet: {self._read_packet}")
                     except Exception as e:
                         msg = "Invalid packet received: %s" % line
                         self._logger.warning(msg)

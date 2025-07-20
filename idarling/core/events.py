@@ -33,7 +33,7 @@ import ida_idc
 import ida_offset
 import idc
 
-from ..shared.local_types import GetTypeString, LocalType, InsertType
+from ..shared.local_types import GetTypeString, LocalType, InsertType, DeleteType
 from ..shared.packets import DefaultEvent
 
 if sys.version_info > (3,):
@@ -314,10 +314,15 @@ class LocalTypesChangedEvent(Event):
 
     def __call__(self):
         for t_old, t_new in self.local_types:
+            print(f"============ callback for local types changed {t_old} --> {t_new}")
+
             if t_new:
                 name, parsed_list, type_fields = t_new
-                t_new = LocalType(name=name,parsedList=parsed_list,TypeFields=type_fields.encode())
-                InsertType(t_new,fReplace=True)
+                t_new = LocalType(name=name, parsedList=parsed_list, TypeFields=type_fields.encode())
+                InsertType(t_new, fReplace=True)
+            else:
+                DeleteType(t_old[0])
+
         ida_kernwin.request_refresh(ida_kernwin.IWID_LOCTYPS)
         # XXX - old code below to delete?
         # from .core import Core

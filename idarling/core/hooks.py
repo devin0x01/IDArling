@@ -548,6 +548,7 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
         return 0
 
     def struc_cmt_changed(self, id, repeatable_cmt):
+        print("????? struc_cmt_changed() called")
         fullname = idc.get_struc_name(id)
         if "." in fullname:
             sname, smname = fullname.split(".", 1)
@@ -998,7 +999,7 @@ class UIHooks(Hooks, ida_kernwin.UI_Hooks):
 
     def preprocess_action(self, name):
         ea = ida_kernwin.get_screen_ea()
-        self._plugin.logger.debug(f"preprocess_action(name = {name}), ea = 0x{ea:X}. local_type_map_size = {len(self._plugin.core.local_type_map)}")
+        self._plugin.logger.debug(f"preprocess_action(name = {name}), ea = 0x{ea:X}. type_count={len(self._plugin.core.local_type_map)}")
 
         if name == "MakeUnknown":
             self.actions.append((name, ea))

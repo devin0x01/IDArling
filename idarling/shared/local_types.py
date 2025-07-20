@@ -514,6 +514,16 @@ def InsertType(type_obj, fReplace=False):
         print("bad insert: %s; ret = %d" % (type_obj.name, ret))
     return ret
 
+def DeleteType(type_name: str) -> bool:
+    idx = getTypeOrdinal(type_name)
+    if idx == 0:
+        print(f"DeleteType: type '{type_name}' not found.")
+        return False
+    result = ida_typeinf.del_numbered_type(idaapi.get_idati(), idx)
+    if not result:
+        print(f"DeleteType: failed to delete type '{type_name}' (ordinal={idx}).")
+        return False
+    return True
 
 def checkExistence(name_list, target_list):
     for name in name_list:
