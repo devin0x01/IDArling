@@ -121,7 +121,7 @@ class Core(Module):
         self.save_netnode()
 
     def update_local_types_map(self):
-        for i in range(1, ida_typeinf.get_ordinal_count(ida_typeinf.get_idati())):
+        for i in range(1, ida_typeinf.get_ordinal_count(ida_typeinf.get_idati()) + 1):
             t = ImportLocalType(i)
             self.local_type_map[i] = t
 
