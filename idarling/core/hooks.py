@@ -26,6 +26,7 @@ import ida_pro
 import ida_segment
 import ida_typeinf
 import idc
+from PyQt5.QtCore import QTimer
 
 fDebug = False
 if fDebug:
@@ -64,6 +65,8 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
         ida_idp.IDB_Hooks.__init__(self)
         Hooks.__init__(self, plugin)
         self.last_local_type = None
+        self._change_local_type_timer = QTimer()
+        self._pending_create_ordinals = set()
 
     def auto_empty_finally(self):
         self._plugin.logger.debug("auto_empty_finally() not implemented yet")
@@ -190,6 +193,11 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
                     changed_types.append((None, new_type.to_tuple()))
                 else:
                     self._plugin.logger.warning(f"Create event but new_type is None: ordinal={ordinal}, name='{name}'")
+                    self._pending_create_ordinals.add((ordinal, name))
+
+                    self._change_local_type_timer.setInterval(500)
+                    self._change_local_type_timer.timeout.connect(self._process_pending_create_ordinals)
+                    self._change_local_type_timer.start()
             elif ltc == 2:  # DELETE
                 old_type = self._plugin.core.local_type_map.get(ordinal)
                 if old_type:
@@ -226,6 +234,26 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
             self._plugin.logger.error("Error processing local type change: %s" % str(e))
 
         return 0
+
+    # workaround for IDA local types creation events
+    def _process_pending_create_ordinals(self):
+        self._plugin.core.update_local_types_map()
+        found = set()
+        for ordinal, name in self._pending_create_ordinals:
+            new_type = self._plugin.core.local_type_map.get(ordinal)
+            if new_type and new_type.name == name:
+                self._plugin.logger.info(f"Processed pending create ordinal: {ordinal}, found type: {name}")
+                self._send_packet(evt.LocalTypesChangedEvent([(None, new_type.to_tuple())]))
+                found.add((ordinal, name))
+
+        # remove processed ordinals from pending list
+        self._pending_create_ordinals -= found
+        # stop timer if there are no more pending ordinals
+        if not self._pending_create_ordinals:
+            self._change_local_type_timer.stop()
+        else:
+            #self._plugin.logger.trace(f"Pending create ordinals remaining: {len(self._pending_create_ordinals)}, local_map_size={len(self._plugin.core.local_type_map)}")
+            pass
 
     def _log_type_details(self, type_obj, prefix=""):
         """记录类型的详细信息"""
