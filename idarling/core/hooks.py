@@ -324,6 +324,7 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
         except Exception as e:
             self._plugin.logger.debug("Error comparing types: %s" % e)
 
+    # function prototype change
     def ti_changed(self, ea, type, fname):
         self._plugin.logger.debug("ti_changed(ea = 0x%X, type = %s, fname = %s)" % (ea, type, fname))
         name = ""
@@ -694,14 +695,16 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
         self._send_packet(evt.MakeDataEvent(ea, flags, size, idc.get_struc_name(tid) if tid != ida_netnode.BADNODE else ''))
         return 0
 
+    # function renamed    --> RenamedEvent
+    # struct/enum renamed --> LocalTypesChangedEvent
     def renamed(self, ea, new_name, local_name):
         self._plugin.logger.debug("renamed(ea = %x, new_name = %s, local_name = %d)" % (ea, new_name, local_name))
-        if idc.is_member_id(ea) or idc.is_struc(ea) or idc.get_enum_name(ea):
+        # if idc.is_member_id(ea) or idc.is_struc(ea) or idc.get_enum_name(ea):
             # Drop hook to avoid duplicate since already handled by the following hooks:
             # - renaming_struc_member() -> sends 'StrucMemberRenamedEvent'
             # - renaming_struc() -> sends 'StrucRenamedEvent' 
             # - renaming_enum() -> sends 'EnumRenamedEvent' 
-            return 0 
+            # return 0 
         self._send_packet(evt.RenamedEvent(ea, new_name, local_name))
         return 0
 

@@ -130,8 +130,8 @@ class RenamedEvent(Event):
         ida_name.set_name(
             self.ea, self.new_name, flags | ida_name.SN_NOWARN
         )
-        ida_kernwin.request_refresh(ida_kernwin.IWID_DISASMS)
-        ida_kernwin.request_refresh(ida_kernwin.IWID_STRUCS)
+        ida_kernwin.request_refresh(ida_kernwin.IWID_DISASM)
+        #ida_kernwin.request_refresh(ida_kernwin.IWID_STRUCS)
         ida_kernwin.request_refresh(ida_kernwin.IWID_STKVIEW)
         HexRaysEvent.refresh_pseudocode_view(self.ea)
 
@@ -303,6 +303,8 @@ class TiChangedEvent(Event):
                 self.ea,
                 ida_typeinf.TINFO_DEFINITE,
             )
+            ida_kernwin.request_refresh(ida_kernwin.IWID_DISASM)
+            HexRaysEvent.refresh_pseudocode_view(self.ea)
 
 
 class LocalTypesChangedEvent(Event):
