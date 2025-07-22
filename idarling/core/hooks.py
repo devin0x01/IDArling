@@ -872,7 +872,9 @@ class HexRaysHooks(Hooks):
 
     def _send_user_cmts(self, ea):
         cmts = HexRaysHooks._get_user_cmts(ea)
-        if cmts != self._cached_funcs[ea]["cmts"]:
+        cached_cmts = self._cached_funcs[ea]["cmts"]
+        if cmts != cached_cmts:
+            self._plugin.logger.debug(f"====Changed pseudocode comments: ea=0x{ea:x}, cmts={cmts}, cached_cmts={cached_cmts}")
             self._send_packet(evt.UserCmtsEvent(ea, cmts))
             self._cached_funcs[ea]["cmts"] = cmts
 

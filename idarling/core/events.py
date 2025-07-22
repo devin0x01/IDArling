@@ -993,7 +993,7 @@ class HexRaysEvent(Event):
                 func = ida_funcs.get_func(func_ea)
                 # print("refresh_pseudocode_view: func_ea = 0x%X, ea = 0x%X, " % (func_ea, ea), ida_funcs.func_contains(func, ea))
                 if ida_funcs.func_contains(func, ea):
-                    vu.refresh_view(False)
+                    vu.refresh_view(True)
 
 
 class UserLabelsEvent(HexRaysEvent):
@@ -1012,6 +1012,7 @@ class UserLabelsEvent(HexRaysEvent):
         HexRaysEvent.refresh_pseudocode_view(self.ea)
 
 
+# pseudocode window comment
 class UserCmtsEvent(HexRaysEvent):
     __event__ = "user_cmts"
 
@@ -1029,6 +1030,7 @@ class UserCmtsEvent(HexRaysEvent):
             cmts.insert(tl, ida_hexrays.citem_cmt_t(cmt))
         ida_hexrays.save_user_cmts(self.ea, cmts)
         HexRaysEvent.refresh_pseudocode_view(self.ea)
+        # ida_kernwin.request_refresh(ida_kernwin.IWID_PSEUDOCODE)
 
 
 class UserIflagsEvent(HexRaysEvent):
