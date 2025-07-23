@@ -257,7 +257,7 @@ class LocalType(object):
         return self.flags & 8 == 8
     
     def isEqual(self, t):
-        if t and  self.parsedList == t.parsedList \
+        if t and self.parsedList == t.parsedList \
                 and self.TypeFields == t.TypeFields \
                 and self.name == t.name:
             return True
@@ -477,17 +477,17 @@ def getTypeOrdinal(name):
     return ida_typeinf.get_type_ordinal(my_ti, name)
 
 
-def InsertType(type_obj, fReplace=False):
-    # print("Insert type %s." % type_obj.name)
+def InsertType(type_obj, replace=False):
+    # print(f"=====Insert type {type_obj.name}")
     wrapperTypeString = b'\x0d\x01\x01'
     if getTypeOrdinal(type_obj.name) != 0:
         idx = getTypeOrdinal(type_obj.name)
         t = ImportLocalType(idx)
         if (t.TypeFields is None or t.TypeFields == "") and t.is_sue():
-            fReplace = True
+            replace = True
         if t.isEqual(type_obj) or type_obj.TypeString == wrapperTypeString:
             return 1
-        if not fReplace:
+        if not replace:
             type_obj = DuplicateResolver(t, type_obj, False)
     else:
         idx = ida_typeinf.alloc_type_ordinals(idaapi.get_idati(), 1)
@@ -515,6 +515,7 @@ def InsertType(type_obj, fReplace=False):
     return ret
 
 def DeleteType(type_name: str) -> bool:
+    # print(f"=====Delete type {type_name}")
     idx = getTypeOrdinal(type_name)
     if idx == 0:
         print(f"DeleteType: type '{type_name}' not found.")
