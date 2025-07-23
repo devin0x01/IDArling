@@ -33,7 +33,7 @@ import ida_idc
 import ida_offset
 import idc
 
-from ..shared.local_types import GetTypeString, LocalType, InsertType, DeleteType
+from ..shared.local_types import GetTypeString, LocalType, InsertType, DeleteType, EditTypeInPlace
 from ..shared.packets import DefaultEvent
 
 if sys.version_info > (3,):
@@ -318,14 +318,15 @@ class LocalTypesChangedEvent(Event):
         for old_tuple, new_tuple in self.local_types:
             print(f"============ callback for local types changed {old_tuple} --> {new_tuple}")
 
-            if old_tuple:
-                if not new_tuple or old_tuple[0] != new_tuple[0]:
-                    DeleteType(old_tuple[0])
-
-            if new_tuple:
+            if not new_tuple:
+                DeleteType(old_tuple[0])
+            else:
                 name, parsed_list, type_fields, *rest = new_tuple
                 new_type = LocalType(name=name, parsedList=parsed_list, TypeFields=type_fields.encode())
-                InsertType(new_type, replace=True)
+                if not old_tuple:
+                    InsertType(new_type, replace=True)
+                else:
+                    EditTypeInPlace(old_tuple[0], new_type)
 
         ida_kernwin.request_refresh(ida_kernwin.IWID_LOCTYPS)
         # XXX - old code below to delete?

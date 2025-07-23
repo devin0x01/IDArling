@@ -514,6 +514,7 @@ def InsertType(type_obj, replace=False):
         print("bad insert: %s; ret = %d" % (type_obj.name, ret))
     return ret
 
+
 def DeleteType(type_name: str) -> bool:
     # print(f"=====Delete type {type_name}")
     idx = getTypeOrdinal(type_name)
@@ -525,6 +526,42 @@ def DeleteType(type_name: str) -> bool:
         print(f"DeleteType: failed to delete type '{type_name}' (ordinal={idx}).")
         return False
     return True
+
+
+def EditTypeInPlace(old_name, new_type):
+    # print(f"=====Edit type, from {old_name} --> {type_obj.name}")
+    wrapperTypeString = b'\x0d\x01\x01'
+    if getTypeOrdinal(old_name) != 0:
+        idx = getTypeOrdinal(old_name)
+        old_type = ImportLocalType(idx)
+        if old_type.isEqual(new_type) or new_type.TypeString == wrapperTypeString:
+            return 1
+    else:
+        idx = ida_typeinf.alloc_type_ordinals(idaapi.get_idati(), 1)
+
+    tif = ida_typeinf.tinfo_t()
+    ret = tif.deserialize(ida_typeinf.get_idati(), new_type.GetTypeString(), new_type.TypeFields, new_type.fieldcmts)
+    if not ret:
+        idaapi.warning("Error on tinfo deserilization, type name = %s, ret = %d" % (new_type.name, ret))
+        ret = -1
+    else:
+        ret = tif.set_numbered_type(idaapi.get_idati(), idx, 0x4, new_type.name)
+    del tif
+    # ret = idaapi.set_numbered_type(
+    #     my_ti,
+    #     idx,
+    #     0x4,
+    #     type_obj.name,
+    #     type_obj.GetTypeString(),
+    #     type_obj.TypeFields,
+    #     type_obj.cmt,
+    #     type_obj.fieldcmts
+    # )
+    # print "Insert type %s. ret = %d"%(type_obj.name,ret)
+    if (ida_pro.IDA_SDK_VERSION < 700 and ret != 1) or (ida_pro.IDA_SDK_VERSION >= 700 and ret != 0):
+        print(f"!!! Bad edit type: from {old_name} --> {new_type.name}; ret = {ret}")
+    return ret
+
 
 def checkExistence(name_list, target_list):
     for name in name_list:
