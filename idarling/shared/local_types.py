@@ -550,6 +550,7 @@ def EditTypeInPlace(old_name, new_type):
         idaapi.warning("Error on tinfo deserilization, type name = %s, ret = %d" % (new_type.name, ret))
         ret = -1
     else:
+        tif.set_type_cmt(cmt=new_type.cmt.decode())
         ret = tif.set_numbered_type(idaapi.get_idati(), idx, 0x4, new_type.name)
     del tif
     # ret = idaapi.set_numbered_type(
