@@ -13,6 +13,7 @@
 import ctypes
 import os
 import sys
+import socket
 
 import ida_auto
 import ida_diskio
@@ -35,6 +36,16 @@ from ..shared.local_types import ImportLocalType
 
 if sys.version_info > (3,):
     long = int
+
+
+def get_host_id():
+    try:
+        hostname = socket.gethostname()
+        ip = socket.gethostbyname(hostname)
+        return ip
+    except Exception as e:
+        print(f"============== failed to get local ip {e}")
+        return "AnnoHost"
 
 
 class Core(Module):
@@ -64,6 +75,7 @@ class Core(Module):
 
     def __init__(self, plugin):
         super(Core, self).__init__(plugin)
+        self._host_id = get_host_id()
         self._project = None
         self._binary = None
         self._snapshot = None
@@ -320,7 +332,7 @@ class Core(Module):
             if self._session_joined:
                 self._plugin.logger.debug("Joining a new session")
             else:
-                self._plugin.logger.debug("Joining session")
+                self._plugin.logger.info(f"Joining session: {self._host_id}, {self._project}, {self._binary}, {self._snapshot}")
 
             def snapshots_listed(reply):
                 if any(d.name == self._snapshot for d in reply.snapshots):
@@ -334,6 +346,7 @@ class Core(Module):
                 ea = ida_kernwin.get_screen_ea()
                 self._plugin.network.send_packet(
                     JoinSession(
+                        self._host_id,
                         self._project,
                         self._binary,
                         self._snapshot,
@@ -366,7 +379,7 @@ class Core(Module):
         self._plugin.logger.debug("Leaving session")
         if self._project and self._binary and self._snapshot:
             name = self._plugin.config["user"]["name"]
-            self._plugin.network.send_packet(LeaveSession(name))
+            self._plugin.network.send_packet(LeaveSession(self._host_id, name))
             self._users.clear()
             self.unhook_all()
         self._session_joined = False

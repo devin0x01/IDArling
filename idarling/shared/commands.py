@@ -239,8 +239,9 @@ class RenameBinary(ParentCommand):
 class JoinSession(DefaultCommand):
     __command__ = "join_session"
 
-    def __init__(self, project, binary, snapshot, tick, name, color, ea, silent=True):
+    def __init__(self, host_id, project, binary, snapshot, tick, name, color, ea, silent=True):
         super(JoinSession, self).__init__()
+        self.host_id = host_id
         self.project = project
         self.binary = binary
         self.snapshot = snapshot
@@ -254,8 +255,9 @@ class JoinSession(DefaultCommand):
 class LeaveSession(DefaultCommand):
     __command__ = "leave_session"
 
-    def __init__(self, name, silent=True):
+    def __init__(self, host_id, name, silent=True):
         super(LeaveSession, self).__init__()
+        self.host_id = host_id
         self.name = name
         self.silent = silent
 

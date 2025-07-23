@@ -59,6 +59,7 @@ class ServerClient(ClientSocket):
         """
 
         ClientSocket.__init__(self, logger, parent)
+        self._client_id = None # use hostname as id
         self._project = None
         self._binary = None
         self._snapshot = None
@@ -66,6 +67,10 @@ class ServerClient(ClientSocket):
         self._color = None
         self._ea = None
         self._handlers = {}
+
+    @property
+    def client_id(self):
+        return self._client_id
 
     @property
     def project(self):
@@ -129,7 +134,7 @@ class ServerClient(ClientSocket):
         # Notify other users that we disconnected
         self.parent().reject(self)
         if self._project and self._binary and self._snapshot and notify:
-            self.parent().forward_users(self, LeaveSession(self.name, False))
+            self.parent().forward_users(self, LeaveSession(self.client_id, self.name, False))
         ClientSocket.disconnect(self, err)
 
     def recv_packet(self, packet):
@@ -291,6 +296,7 @@ class ServerClient(ClientSocket):
         self.send_packet(reply)
 
     def _handle_join_session(self, packet):
+        self._client_id = packet.host_id
         self._project = packet.project
         self._binary = packet.binary
         self._snapshot = packet.snapshot
@@ -306,6 +312,7 @@ class ServerClient(ClientSocket):
         for user in self.parent().get_users(self):
             self.send_packet(
                 JoinSession(
+                    packet.host_id,
                     packet.project,
                     packet.binary,
                     packet.snapshot,
@@ -330,6 +337,7 @@ class ServerClient(ClientSocket):
         packet.silent = False
         self.parent().forward_users(self, packet)
 
+        self._client_id = None
         self._project = None
         self._binary = None
         self._snapshot = None
