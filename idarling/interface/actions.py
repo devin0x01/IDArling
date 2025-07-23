@@ -212,7 +212,7 @@ class OpenActionHandler(ActionHandler):
         file_name = "%s_%s_%s.%s" % (project.name, snapshot.binary, snapshot.name, file_ext)
         file_path = os.path.join(self._plugin.config["files_dir"], file_name)
 
-        print(f"====== download file: {file_path}")
+        print(f"====== download file to: {file_path}")
 
         # Write the file to disk
         decompressed_content = bz2.decompress(reply.content)
