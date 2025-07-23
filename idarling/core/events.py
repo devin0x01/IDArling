@@ -317,16 +317,18 @@ class LocalTypesChangedEvent(Event):
     def __call__(self):
         for old_tuple, new_tuple in self.local_types:
             print(f"============ callback for local types changed {old_tuple} --> {new_tuple}")
-
-            if not new_tuple:
-                DeleteType(old_tuple[0])
-            else:
-                name, parsed_list, type_fields, *rest = new_tuple
-                new_type = LocalType(name=name, parsedList=parsed_list, TypeFields=type_fields.encode())
-                if not old_tuple:
-                    InsertType(new_type, replace=True)
+            try:
+                if not new_tuple:
+                    DeleteType(old_tuple[0])
                 else:
-                    EditTypeInPlace(old_tuple[0], new_type)
+                    name, parsed_list, type_fields, cmt, field_cmts = new_tuple
+                    new_type = LocalType(name=name, parsedList=parsed_list, TypeFields=type_fields.encode(), cmt=cmt.encode(), fieldcmts=field_cmts.encode())
+                    if not old_tuple:
+                        InsertType(new_type, replace=True)
+                    else:
+                        EditTypeInPlace(old_tuple[0], new_type)
+            except Exception as e:
+                print(f"failed to apply local type change: {old_tuple} --> {new_tuple}")
 
         ida_kernwin.request_refresh(ida_kernwin.IWID_LOCTYPS)
         # XXX - old code below to delete?

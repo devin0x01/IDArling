@@ -108,7 +108,7 @@ class LocalType(object):
     def __init__(self, name=b"", TypeString=b"", TypeFields=b"", cmt=b"", fieldcmts=b"", sclass=0, parsedList=None, depends=None, isStandard=False):
         self.TypeString = TypeString
         self.TypeFields = TypeFields
-        self.cmt = cmt
+        self.cmt = cmt if type(cmt) == bytes else cmt.encode("utf-8")
         self.fieldcmts = fieldcmts if type(fieldcmts) == bytes else fieldcmts.encode("utf-8")
         self.sclass = sclass
         self.name = name
@@ -117,6 +117,8 @@ class LocalType(object):
         self.depends_ordinals = []
         self.flags = 8 if isStandard else 0
         # print "Type string: %s"%self.TypeString.encode("HEX")
+
+        # TypeString <--> parsedList
         if self.TypeString != b"":
             self.parsedList = self.ParseTypeString(self.TypeString)
         if self.parsedList is not None and self.TypeString == b"":
@@ -144,7 +146,7 @@ class LocalType(object):
         my_ti = idaapi.get_idati()
         ordinal = idaapi.get_type_ordinal(my_ti, name)
     
-    def GetTypeString(self):
+    def GetTypeString(self) -> bytes:
         ti = idaapi.get_idati()
         # print "GetTypeString: name %s"%self.name
         the_bytes = []
@@ -259,7 +261,9 @@ class LocalType(object):
     def isEqual(self, t):
         if t and self.parsedList == t.parsedList \
                 and self.TypeFields == t.TypeFields \
-                and self.name == t.name:
+                and self.name == t.name \
+                and self.cmt == t.cmt \
+                and self.fieldcmts == t.fieldcmts:
             return True
         return False
     
@@ -269,7 +273,7 @@ class LocalType(object):
         return False
         
     def to_tuple(self):
-       return self.name, self.parsedList, self.TypeFields.decode()
+       return self.name, self.parsedList, self.TypeFields.decode(), self.cmt.decode(), self.fieldcmts.decode()
    
     def is_complex(self):
         return self.TypeString[0] & idaapi.TYPE_BASE_MASK == idaapi.BT_COMPLEX
@@ -491,6 +495,7 @@ def InsertType(type_obj, replace=False):
             type_obj = DuplicateResolver(t, type_obj, False)
     else:
         idx = ida_typeinf.alloc_type_ordinals(idaapi.get_idati(), 1)
+
     tif = ida_typeinf.tinfo_t()
     ret = tif.deserialize(ida_typeinf.get_idati(), type_obj.GetTypeString(), type_obj.TypeFields, type_obj.fieldcmts)
     if not ret:
