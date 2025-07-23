@@ -12,6 +12,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 import json
 import sqlite3
+from datetime import datetime
 
 from .models import Project, Binary, Snapshot
 from .packets import Default, DefaultEvent
@@ -66,6 +67,8 @@ class Storage(object):
         self._create(
             "events",
             [
+                "host_id text",
+                "timestamp text not null",
                 "project text not null",
                 "binary text not null",
                 "snapshot text not null",
@@ -142,9 +145,13 @@ class Storage(object):
     def insert_event(self, client, event):
         """Insert a new event into the database."""
         dct = DefaultEvent.attrs(event.__dict__)
+        iso_time = datetime.now().isoformat(sep='_', timespec='seconds')  # '2023-07-23_15:30:45'
+
         self._insert(
             "events",
             {
+                "host_id": client.client_id,
+                "timestamp": iso_time,
                 "project": client.project,
                 "binary": client.binary,
                 "snapshot": client.snapshot,
