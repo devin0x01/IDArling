@@ -249,12 +249,17 @@ class RangeCmtChangedEvent(Event):
 
     def __call__(self):
         cmt = self.cmt
+        # pseudocode window, function prototype comment
         if self.kind == ida_range.RANGE_KIND_FUNC:
             func = ida_funcs.get_func(self.start_ea)
             ida_funcs.set_func_cmt(func, cmt, self.rptble)
+
+            HexRaysEvent.refresh_pseudocode_view(self.start_ea)
         elif self.kind == ida_range.RANGE_KIND_SEGMENT:
             segment = ida_segment.getseg(self.start_ea)
             ida_segment.set_segment_cmt(segment, cmt, self.rptble)
+
+            ida_kernwin.request_refresh(ida_kernwin.IWID_SEGS)
         else:
             raise Exception("Unsupported range kind: %d" % self.kind)
 
@@ -328,7 +333,7 @@ class LocalTypesChangedEvent(Event):
                     else:
                         EditTypeInPlace(old_tuple[0], new_type)
             except Exception as e:
-                print(f"failed to apply local type change: {old_tuple} --> {new_tuple}")
+                print(f"failed to apply local type change: {e}, {old_tuple} --> {new_tuple}")
 
         ida_kernwin.request_refresh(ida_kernwin.IWID_LOCTYPS)
         # XXX - old code below to delete?

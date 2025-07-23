@@ -714,12 +714,14 @@ class IDBHooks(Hooks, ida_idp.IDB_Hooks):
         )
         return 0
 
+    # assemble window comment
     def cmt_changed(self, ea, repeatable_cmt):
         cmt = ida_bytes.get_cmt(ea, repeatable_cmt)
         cmt = "" if not cmt else cmt
         self._send_packet(evt.CmtChangedEvent(ea, cmt, repeatable_cmt))
         return 0
 
+    # pseudocode window, function prototype comment
     def range_cmt_changed(self, kind, a, cmt, repeatable):
         self._send_packet(evt.RangeCmtChangedEvent(kind, a, cmt, repeatable))
         return 0
