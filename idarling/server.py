@@ -45,7 +45,7 @@ class DedicatedServer(Server):
         This function returns the absolute path to a server's file. It should
         be located within a files/ subdirectory of the current directory.
         """
-        files_dir = os.path.join(os.path.dirname(__file__), "files")
+        files_dir = os.path.join(os.path.dirname(__file__), "../../idarling_data")
         files_dir = os.path.abspath(files_dir)
         if not os.path.exists(files_dir):
             os.makedirs(files_dir)
