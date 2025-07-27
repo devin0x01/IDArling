@@ -1005,7 +1005,8 @@ class HexRaysEvent(Event):
                 func = ida_funcs.get_func(func_ea)
                 # print("refresh_pseudocode_view: func_ea = 0x%X, ea = 0x%X, " % (func_ea, ea), ida_funcs.func_contains(func, ea))
                 if ida_funcs.func_contains(func, ea):
-                    vu.refresh_view(True)
+                    # Let user refresh by themselves to avoid refreshing too frequently
+                    vu.refresh_view(False)
 
 
 class UserLabelsEvent(HexRaysEvent):

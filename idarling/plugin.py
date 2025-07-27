@@ -37,7 +37,7 @@ class IDArlingPlugin(ida_idaapi.plugin_t):
 
     # Mandatory definitions
     PLUGIN_NAME = "IDArling"
-    PLUGIN_VERSION = "0.1.0"
+    PLUGIN_VERSION = "0.1.1"
     PLUGIN_AUTHORS = "The IDArling Team"
 
     # These flags specify that the plugin should persist between databases
@@ -92,7 +92,7 @@ class IDArlingPlugin(ida_idaapi.plugin_t):
             "level": logging.INFO,
             "servers": [],
             "keep": {"cnt": 4, "intvl": 15, "idle": 240},
-            "cursors": {"navbar": True, "funcs": True, "disasm": True},
+            "cursors": {"navbar": False, "funcs": False, "disasm": False},
             "user": {"color": color, "name": "unnamed", "notifications": True},
             "files_dir": file_path,
         }

@@ -174,11 +174,15 @@ class Client(ClientSocket):
         # Update the users list
         user = self._plugin.core.get_user(packet.name)
         user["ea"] = packet.ea
+        # add_user will refresh the background color and status bar
         self._plugin.core.add_user(packet.name, user)
 
         followed = self._plugin.interface.followed
+        self._plugin.logger.trace(f"Followed user {followed}, packet_name {packet.name}")
+
         if followed == packet.name or followed == "everyone":
             ida_kernwin.jumpto(packet.ea)
+            self._plugin.logger.trace(f"Jumped to {packet.ea} for {followed}, packet_name {packet.name}")
 
     def _handle_download_file(self, query):
         # Upload the current snapshot

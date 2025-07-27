@@ -180,6 +180,9 @@ class Core(Module):
         self._idb_hooks_core.hook()
 
         class IDPHooksCore(ida_idp.IDP_Hooks):
+            # 初始渲染、切换视图 或者调用 ida_kernwin.request_refresh() ida_kernwin.refresh_navband()
+            # IDA会遍历当前窗口的地址区域，依次请求每个地址的背景色
+            # 比如 UpdateLocation 之后 会调用 Painer.refresh() 触发refresh
             def ev_get_bg_color(self, color, ea):
                 #core._plugin.logger.trace("Get bg color hook")
                 value = core._plugin.interface.painter.get_bg_color(ea)
@@ -221,6 +224,8 @@ class Core(Module):
 
         class ViewHooksCore(ida_kernwin.View_Hooks):
             def view_loc_changed(self, view, now, was):
+                return
+
                 # Even if it is a core hook, there is no point sending an
                 # UpdateLocation if we are not in a valid session
                 if not core._session_joined:
