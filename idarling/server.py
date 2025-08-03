@@ -31,7 +31,7 @@ class DedicatedServer(Server):
 
     def __init__(self, level, parent=None):
         # Get the path to the log file
-        log_dir = os.path.join(os.path.dirname(__file__), "logs")
+        log_dir = os.path.join(os.path.dirname(__file__), "../../idarling_data/logs")
         log_dir = os.path.abspath(log_dir)
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
