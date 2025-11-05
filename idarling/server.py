@@ -31,7 +31,7 @@ class DedicatedServer(Server):
 
     def __init__(self, level, parent=None):
         # Get the path to the log file
-        log_dir = os.path.join(os.path.dirname(__file__), "logs")
+        log_dir = os.path.join(os.path.dirname(__file__), "../../idarling_data/logs")
         log_dir = os.path.abspath(log_dir)
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
@@ -45,7 +45,7 @@ class DedicatedServer(Server):
         This function returns the absolute path to a server's file. It should
         be located within a files/ subdirectory of the current directory.
         """
-        files_dir = os.path.join(os.path.dirname(__file__), "files")
+        files_dir = os.path.join(os.path.dirname(__file__), "../../idarling_data/files")
         files_dir = os.path.abspath(files_dir)
         if not os.path.exists(files_dir):
             os.makedirs(files_dir)
